@@ -1,0 +1,242 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Student Dashboard - Library System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .student-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    }
+    
+    .student-header h2 {
+        font-weight: 800;
+        margin: 0;
+    }
+    
+    .stat-card-student {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card-student::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--gradient-color-1), var(--gradient-color-2));
+    }
+    
+    .stat-card-student:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-card-student.primary {
+        --gradient-color-1: #667eea;
+        --gradient-color-2: #764ba2;
+    }
+    
+    .stat-card-student.warning {
+        --gradient-color-1: #f093fb;
+        --gradient-color-2: #f5576c;
+    }
+    
+    .stat-card-student.danger {
+        --gradient-color-1: #ff6b6b;
+        --gradient-color-2: #ee5a6f;
+    }
+    
+    .stat-icon-student {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, var(--gradient-color-1), var(--gradient-color-2));
+        color: white;
+    }
+    
+    .stat-value-student {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin: 0.5rem 0;
+    }
+    
+    .stat-label-student {
+        color: #6c757d;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="student-header">
+    <h2><i class="fas fa-user-graduate me-2"></i> My Dashboard</h2>
+    <p class="mb-0 mt-2" style="opacity: 0.9;">Welcome back, {{ student.full_name }}! Track your books and reading progress.</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="stat-card-student primary">
+            <div class="stat-icon-student">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="stat-value-student">{{ issued_books.count }}</div>
+            <div class="stat-label-student">Issued Books</div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card-student warning">
+            <div class="stat-icon-student">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-value-student">{{ pending_requests.count }}</div>
+            <div class="stat-label-student">Pending Requests</div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="stat-card-student danger">
+            <div class="stat-icon-student">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-value-student">${{ total_fines }}</div>
+            <div class="stat-label-student">Total Fines</div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5><i class="fas fa-book-open"></i> Currently Issued Books</h5>
+    </div>
+    <div class="card-body">
+        {% if issued_books %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Book Title</th>
+                        <th>Author</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in issued_books %}
+                    <tr>
+                        <td><a href="{% url 'book_detail' issue.book.id %}">{{ issue.book.title }}</a></td>
+                        <td>{{ issue.book.author }}</td>
+                        <td>{{ issue.issue_date|date:"M d, Y" }}</td>
+                        <td>{{ issue.due_date|date:"M d, Y" }}</td>
+                        <td>
+                            {% now "Y-m-d H:i:s" as current_time %}
+                            {% if issue.due_date|date:"Y-m-d H:i:s" < current_time %}
+                                <span class="badge bg-danger">Overdue</span>
+                            {% else %}
+                                <span class="badge bg-success">Active</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No books currently issued.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <h5><i class="fas fa-hourglass-half"></i> Pending Requests</h5>
+    </div>
+    <div class="card-body">
+        {% if pending_requests %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Book Title</th>
+                        <th>Author</th>
+                        <th>Request Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in pending_requests %}
+                    <tr>
+                        <td><a href="{% url 'book_detail' request.book.id %}">{{ request.book.title }}</a></td>
+                        <td>{{ request.book.author }}</td>
+                        <td>{{ request.request_date|date:"M d, Y" }}</td>
+                        <td><span class="badge bg-warning">Pending</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No pending requests.</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5><i class="fas fa-history"></i> Returned Books</h5>
+    </div>
+    <div class="card-body">
+        {% if returned_books %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Book Title</th>
+                        <th>Issue Date</th>
+                        <th>Return Date</th>
+                        <th>Fine</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in returned_books %}
+                    <tr>
+                        <td>{{ issue.book.title }}</td>
+                        <td>{{ issue.issue_date|date:"M d, Y" }}</td>
+                        <td>{{ issue.return_date|date:"M d, Y" }}</td>
+                        <td>
+                            {% if issue.fine > 0 %}
+                                <span class="text-danger">${{ issue.fine }}</span>
+                            {% else %}
+                                <span class="text-success">$0.00</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No returned books yet.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

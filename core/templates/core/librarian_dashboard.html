@@ -1,0 +1,246 @@
+{% extends 'core/librarian_base.html' %}
+
+{% block title %}Librarian Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 2rem;
+        color: white;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+    }
+    
+    .dashboard-header h2 {
+        font-weight: 800;
+        margin: 0;
+    }
+    
+    .stat-card-modern {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stat-card-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, var(--gradient-color-1), var(--gradient-color-2));
+    }
+    
+    .stat-card-modern:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-card-modern.primary {
+        --gradient-color-1: #667eea;
+        --gradient-color-2: #764ba2;
+    }
+    
+    .stat-card-modern.success {
+        --gradient-color-1: #4facfe;
+        --gradient-color-2: #00f2fe;
+    }
+    
+    .stat-card-modern.warning {
+        --gradient-color-1: #f093fb;
+        --gradient-color-2: #f5576c;
+    }
+    
+    .stat-card-modern.info {
+        --gradient-color-1: #4facfe;
+        --gradient-color-2: #00f2fe;
+    }
+    
+    .stat-card-modern.danger {
+        --gradient-color-1: #f093fb;
+        --gradient-color-2: #f5576c;
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+        background: linear-gradient(135deg, var(--gradient-color-1), var(--gradient-color-2));
+        color: white;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin: 0.5rem 0;
+    }
+    
+    .stat-label {
+        color: #6c757d;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .requests-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+    
+    .requests-card .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border: none;
+    }
+    
+    .requests-card .card-header h5 {
+        margin: 0;
+        font-weight: 700;
+    }
+    
+    .action-buttons .btn {
+        margin-right: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block librarian_content %}
+<div class="dashboard-header">
+    <h2><i class="fas fa-chart-line me-2"></i> Dashboard Overview</h2>
+    <p class="mb-0 mt-2" style="opacity: 0.9;">Welcome back! Here's what's happening in your library today.</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="stat-card-modern primary">
+            <div class="stat-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <div class="stat-value">{{ total_books }}</div>
+            <div class="stat-label">Total Books</div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="stat-card-modern success">
+            <div class="stat-icon">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div class="stat-value">{{ total_students }}</div>
+            <div class="stat-label">Total Students</div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="stat-card-modern warning">
+            <div class="stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-value">{{ pending_requests }}</div>
+            <div class="stat-label">Pending Requests</div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-lg-6 col-md-6 mb-4">
+        <div class="stat-card-modern info">
+            <div class="stat-icon">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <div class="stat-value">{{ issued_books }}</div>
+            <div class="stat-label">Issued Books</div>
+        </div>
+    </div>
+    <div class="col-lg-6 col-md-6 mb-4">
+        <div class="stat-card-modern danger">
+            <div class="stat-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-value">{{ overdue_books }}</div>
+            <div class="stat-label">Overdue Books</div>
+        </div>
+    </div>
+</div>
+
+<div class="requests-card">
+    <div class="card-header">
+        <h5><i class="fas fa-bell me-2"></i> Recent Requests</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if recent_requests %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Book</th>
+                        <th>Request Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in recent_requests %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-circle me-2">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <strong>{{ request.student.full_name }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ request.book.title }}</td>
+                        <td>{{ request.request_date|date:"M d, Y" }}</td>
+                        <td class="action-buttons">
+                            <a href="{% url 'librarian_approve_request' request.id %}" class="btn btn-success btn-sm">
+                                <i class="fas fa-check me-1"></i> Approve
+                            </a>
+                            <a href="{% url 'librarian_reject_request' request.id %}" class="btn btn-danger btn-sm">
+                                <i class="fas fa-times me-1"></i> Reject
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+            <i class="fas fa-inbox fa-3x mb-3" style="opacity: 0.3;"></i>
+            <p class="mb-0">No recent requests.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .avatar-circle {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}

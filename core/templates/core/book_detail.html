@@ -1,0 +1,75 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ book.title }} - Library System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">{{ book.title }}</h2>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Author:</strong> {{ book.author }}</p>
+                        <p><strong>Category:</strong> {{ book.category.name|default:"N/A" }}</p>
+                        <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+                        <p><strong>Shelf Number:</strong> {{ book.shelf_no }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Total Copies:</strong> {{ book.total_copies }}</p>
+                        <p><strong>Available Copies:</strong> 
+                            {% if book.available_copies > 0 %}
+                                <span class="badge bg-success">{{ book.available_copies }}</span>
+                            {% else %}
+                                <span class="badge bg-danger">0</span>
+                            {% endif %}
+                        </p>
+                        <p><strong>Added Date:</strong> {{ book.added_date|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                
+                {% if book.description %}
+                <hr>
+                <h5>Description</h5>
+                <p>{{ book.description }}</p>
+                {% endif %}
+                
+                <hr>
+                {% if can_request %}
+                    <a href="{% url 'request_book' book.id %}" class="btn btn-success">
+                        <i class="fas fa-book"></i> Request This Book
+                    </a>
+                {% elif user.is_authenticated and user.is_student %}
+                    <button class="btn btn-secondary" disabled>
+                        <i class="fas fa-ban"></i> Cannot Request
+                    </button>
+                    <small class="text-muted">You already have a pending/active request or book is unavailable</small>
+                {% elif not user.is_authenticated %}
+                    <a href="{% url 'login' %}" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i> Login to Request
+                    </a>
+                {% endif %}
+                
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Books
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">QR Code</h5>
+                {% if book.qr_code %}
+                    <img src="{{ book.qr_code.url }}" alt="QR Code" class="img-fluid" style="max-width: 250px;">
+                    <p class="mt-3 text-muted small">Scan to view book details</p>
+                {% else %}
+                    <p class="text-muted">QR Code not available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

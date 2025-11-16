@@ -1,0 +1,53 @@
+{% extends 'core/librarian_base.html' %}
+
+{% block title %}Issued Books{% endblock %}
+
+{% block librarian_content %}
+<h2 class="mb-4"><i class="fas fa-book-open"></i> Issued Books</h2>
+
+<div class="card">
+    <div class="card-body">
+        {% if issued_books %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Book</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for issue in issued_books %}
+                    <tr>
+                        <td>{{ issue.student.full_name }}<br><small class="text-muted">{{ issue.student.student_id }}</small></td>
+                        <td>{{ issue.book.title }}<br><small class="text-muted">{{ issue.book.author }}</small></td>
+                        <td>{{ issue.issue_date|date:"M d, Y" }}</td>
+                        <td>{{ issue.due_date|date:"M d, Y" }}</td>
+                        <td>
+                            {% now "Y-m-d H:i:s" as current_time %}
+                            {% if issue.due_date|date:"Y-m-d H:i:s" < current_time %}
+                                <span class="badge bg-danger">Overdue</span>
+                            {% else %}
+                                <span class="badge bg-success">Active</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'librarian_return_book' issue.id %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-undo"></i> Return
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No books currently issued.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
